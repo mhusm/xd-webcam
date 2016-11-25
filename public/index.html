@@ -13,6 +13,9 @@
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-connect.html">
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-connection.html">
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-url-pairing.html">
+    <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-qr.html">
+
+    <link rel="import" href="bower_components/xdmvcclient/layouts/controller-layout.html">
     <meta name="viewport" content="width=device-width, user-scalable=no">
 
     <title></title>
@@ -35,8 +38,24 @@
                             objects='{{synced}}'
                             other-devices="{{others}}">
         </xdmvc-synchronised>
-        <xdmvc-url-pairing connector="viewer" connectee="overview" ></xdmvc-url-pairing>
-        <img src="[[src]]"/>
+         <controller-layout>
+            <div class="controller">
+this is the phone
+                <button on-click="goBack">Go back</button>
+                <button on-click="setPilatus">Pilatus</button>
+                <button on-click="setWS">Wildspitz</button>
+                <xdmvc-url-pairing connector="controller" connectee="viewer" ></xdmvc-url-pairing>
+
+            </div>
+            <div class="viewer">
+                <div id="qr">
+                    <xdmvc-url-pairing connector="controller" connectee="viewer"  url="{{url}}"></xdmvc-url-pairing>
+                    <xdmvc-qr url="[[url]]" message="Scan the QR code to pair to this screen."></xdmvc-qr>
+                </div>
+
+                <img src="[[src]]" on-error="imageError"/>
+            </div>
+        </controller-layout>
         <style>
 
             img {
@@ -55,30 +74,57 @@
       Polymer({
           is: "my-app",
           properties: {
+              cameras: {
+                  type: Object,
+                   value: function(){ return  {
+                        pilatus: "53ce6af5ae1835.21533240",
+                        wildspitz: "5595515f75aba9.83008277"
+                   }}
+               },
+
               synced: {
                   type: Object,
-                  value: function(){ return { center: {latitude: 47.3786, longitude: 8.5488},
-                      zoom: {level:12},
-                      distance: {value: 0},
-                      bounds: {ne:{}, sw: {}},
-                      map: {type: "roadmap"}
-                  }} ,
+                  value: function(){ return { time: { ms: Date.now()   }, camera : { location: "wildspitz"} }} ,
                   notify: true
               },
-              src: String
+               src: String
+        },
+          observers: ["setTime(synced.time.ms, synced.camera.location)"],
 
-          },
           ready: function () {
-              this.setNow();
+              this.setTime(Date.now());
               setInterval(this.setNow.bind(this), 10*60*1000)
           },
+          imageError: function (e) {
+              console.log(e);
+              this.goBack(); // go back in time until we find a photo
+          },
           setNow: function() {
-          //    this.src = "http://storage.roundshot.com/5595515f75aba9.83008277/2016-11-25/09-10-00/2016-11-25-09-10-00_full.jpg";
-              const tenMinutesAgo = new Date(Date.now() - 10*60*1000);
+                this.setTime(Date.now());
+          },
+
+          goBack: function() {
+              // Try 10 minutes before
+              this.setTime(this.synced.time.ms -10*60*1000);
+              // should maybe stop at some point?
+          },
+
+          setPilatus: function() {
+              this.set("synced.camera.location", "pilatus");
+          },
+          setWS: function() {
+              this.set("synced.camera.location", "wildspitz");
+          },
+
+          setTime: function(time) {
+              this.set("synced.time.ms", time);
+              const tenMinutesAgo = new Date(this.synced.time.ms - 10*60*1000);
               const date = `${tenMinutesAgo.getFullYear()}-${pad(tenMinutesAgo.getMonth()+1,2)}-${pad(tenMinutesAgo.getDate(),2)}`;
               // minutes must be multiples of 10
-              const time = `${tenMinutesAgo.getHours()}-${pad(Math.floor((tenMinutesAgo.getMinutes())/10)*10,2)}-00`;
-              this.src = `http://storage.roundshot.com/5595515f75aba9.83008277/${date}/${time}/${date}-${time}_full.jpg`;
+              const timeformat = `${pad(tenMinutesAgo.getHours(),2)}-${pad(Math.floor((tenMinutesAgo.getMinutes())/10)*10,2)}-00`;
+              console.log(date +"-" +timeformat);
+              console.log(this.cameras);
+              this.src = `http://storage.roundshot.com/${this.cameras[this.synced.camera.location]}/${date}/${timeformat}/${date}-${timeformat}_full.jpg`;
           }
 
       });
