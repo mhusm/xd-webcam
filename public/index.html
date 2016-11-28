@@ -26,6 +26,7 @@
         font-family: 'RobotoDraft', sans-serif;
         padding: 0;
         margin: 0;
+        overflow: hidden;
     }
 
 </style>
@@ -43,7 +44,10 @@
 this is the phone
                 <button on-click="goBack">Go back</button>
                 <button on-click="setPilatus">Pilatus</button>
+
                 <button on-click="setWS">Wildspitz</button>
+                <button on-click="goLeft">Go left</button>
+                <button on-click="goRight">Go right</button>
                 <xdmvc-url-pairing connector="controller" connectee="viewer" ></xdmvc-url-pairing>
 
             </div>
@@ -53,13 +57,19 @@ this is the phone
                     <xdmvc-qr url="[[url]]" message="Scan the QR code to pair to this screen."></xdmvc-qr>
                 </div>
 
-                <img src="[[src]]" on-error="imageError"/>
+                <img id="image" src="[[src]]" on-error="imageError"/>
             </div>
         </controller-layout>
         <style>
 
             img {
                 height: 100vh;
+                position: absolute;
+
+
+            }
+            #qr {
+                position: absolute;
             }
         </style>
 
@@ -84,12 +94,17 @@ this is the phone
 
               synced: {
                   type: Object,
-                  value: function(){ return { time: { ms: Date.now()   }, camera : { location: "wildspitz"} }} ,
+                  value: function(){ return { time: { ms: Date.now()   },
+                      camera : { location: "wildspitz"},
+                      position: {left: 0}
+                  }} ,
                   notify: true
               },
                src: String
         },
-          observers: ["setTime(synced.time.ms, synced.camera.location)"],
+          observers: ["setTime(synced.time.ms, synced.camera.location)",
+                      "setPosition(synced.position.left)"
+          ],
 
           ready: function () {
               this.setTime(Date.now());
@@ -98,6 +113,7 @@ this is the phone
           imageError: function (e) {
               console.log(e);
               this.goBack(); // go back in time until we find a photo
+              // should maybe stop at some point?
           },
           setNow: function() {
                 this.setTime(Date.now());
@@ -106,6 +122,10 @@ this is the phone
           goBack: function() {
               // Try 10 minutes before
               this.setTime(this.synced.time.ms -10*60*1000);
+          },
+          goForward: function() {
+              // Try 10 minutes before
+              this.setTime(this.synced.time.ms +10*60*1000);
               // should maybe stop at some point?
           },
 
@@ -114,6 +134,17 @@ this is the phone
           },
           setWS: function() {
               this.set("synced.camera.location", "wildspitz");
+          },
+
+          goLeft: function () {
+              this.set("synced.position.left", this.synced.position.left -1);
+          },
+          goRight: function () {
+              this.set("synced.position.left", this.synced.position.left +1);
+          },
+
+          setPosition: function() {
+              this.$$("#image").style.left = this.synced.position.left +"vw";
           },
 
           setTime: function(time) {
