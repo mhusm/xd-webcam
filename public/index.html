@@ -86,6 +86,10 @@
                 z-index: 1;
             }
 
+            #portrait {
+                height: 100vh;
+                overflow: auto;
+            }
 
             .camera {
                 width: 50vw;
@@ -135,7 +139,11 @@
                         {name: "Pilatus", code: "53ce6af5ae1835.21533240" },
                         {name: "Wildspitz", code: "5595515f75aba9.83008277"},
                         {name: "Andermatt", code: "5322dcaec2f0b3.73101337" },
-                        {name: "Rotenflue", code: "548ea1876fbaa7.33455027" }
+                        {name: "Rotenflue", code: "548ea1876fbaa7.33455027" },
+                        {name: "Fürenalp", code: "53a83ab613b499.51177756" },
+                        {name: "Scalottas", code: "53aa8fcedea3b9.09671656" },
+                        {name: "Parpaner Rothorn", code: "53aa8e920dd9e7.40757090" },
+                        {name: "Biel-Kinizig", code: "563cccc4d6dde3.19689514"}
                     ]}
                 },
 
@@ -201,19 +209,20 @@
             },
 
             getSrcForLocation: function(index) {
-                return this.getSrc(this.synced.time.ms, this.cameras[index].code);
+                // Thumbnails would be better. It's ok like this as a prototype, but thumbnailswould be slow on mobile
+                return this.getSrc(this.synced.time.ms, this.cameras[index].code, "half");
             },
 
             updateSrc: function(time, location) {
                 this.src = this.getSrc(this.synced.time.ms, this.selectedCamera);
             },
 
-            getSrc: function(timeMs, location) {
+            getSrc: function(timeMs, location, size = "full") {
                 const time = new Date(timeMs);
                 const date = `${time.getFullYear()}-${pad(time.getMonth()+1,2)}-${pad(time.getDate(),2)}`;
                 // minutes must be multiples of 10
                 const timeformat = `${pad(time.getHours(),2)}-${pad(Math.floor((time.getMinutes())/10)*10,2)}-00`;
-                return `http://storage.roundshot.com/${location}/${date}/${timeformat}/${date}-${timeformat}_full.jpg`;
+                return `http://storage.roundshot.com/${location}/${date}/${timeformat}/${date}-${timeformat}_${size}.jpg`;
             }
 
         });
