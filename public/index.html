@@ -79,9 +79,8 @@
             img {
                 height: 100vh;
                 position: absolute;
-
-
             }
+
             #qr {
                 position: absolute;
                 z-index: 1;
@@ -91,10 +90,9 @@
             .camera {
                 width: 50vw;
                 height: 50vw;
-                display: inline-block;
-                white-space: normal;
                 vertical-align: top;
                 overflow: hidden;
+                float: left;
             }
 
             .camera.iron-selected {
@@ -106,9 +104,7 @@
                 height: inherit;
             }
 
-            #portrait {
-                white-space: nowrap;
-            }
+
 
             @media (orientation: landscape) {
                 #portrait {
@@ -136,8 +132,10 @@
                 cameras: {
                     type: Array,
                     value: function(){ return  [
-                       { name: "Pilatus", code: "53ce6af5ae1835.21533240" },
-                       { name: "Wildspitz", code: "5595515f75aba9.83008277" }
+                        {name: "Pilatus", code: "53ce6af5ae1835.21533240" },
+                        {name: "Wildspitz", code: "5595515f75aba9.83008277"},
+                        {name: "Andermatt", code: "5322dcaec2f0b3.73101337" },
+                        {name: "Rotenflue", code: "548ea1876fbaa7.33455027" }
                     ]}
                 },
 
