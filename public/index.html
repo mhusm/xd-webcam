@@ -44,10 +44,14 @@
             <div class="controller">
                 <xdmvc-url-pairing connector="controller" connectee="viewer" ></xdmvc-url-pairing>
                 <div id="landscape">
-                    <button on-click="goBack">Go back</button>
-                    <button on-click="goForward">Go forward</button>
-                    <button on-click="goLeft">Go left</button>
-                    <button on-click="goRight">Go right</button>
+
+                    <template is="dom-repeat" items='[[buttons]]'><button on-down="start" on-up="stop" active$="[[item.active]]">[[item.label]]</button></template>
+
+
+                    <!--
+                    <button on-down="backStarted" on-up="stop" active$="[[backActive]]">Go back</button><button  on-down="forwardStarted" on-up="stop">Go forward</button>
+                    <button on-down="leftStarted" on-up="stop">Go left</button><button on-down="rightStarted" on-up="stop">Go right</button>
+                    -->
                 </div>
                 <div id="portrait">
 
@@ -56,7 +60,7 @@
                         <template is="dom-repeat" items='[[cameras]]'>
                             <div class="camera">
                                 <span>[[item.name]]</span>
-                                <img src="[[getSrcForLocation(index)]]"/>
+                                <img src="[[getSrcForLocation(synced.time.ms, index)]]"/>
                             </div>
                         </template>
 
@@ -86,6 +90,13 @@
                 z-index: 1;
             }
 
+            button {
+                width: 50vw;
+                height: 50vh;
+                border:none;
+                padding: 0;
+            }
+
             #portrait {
                 height: 100vh;
                 overflow: auto;
@@ -108,6 +119,9 @@
                 height: inherit;
             }
 
+            [active] {
+                background: red;
+            }
 
 
             @media (orientation: landscape) {
@@ -162,7 +176,16 @@
                 portrait: {
                     type: Boolean,
                     value: false
-                }
+                },
+                buttons: {
+                    type: Array,
+                    value: [{label: "Go back", func: "back", active: false, interval: 500},
+                        {label: "Go forward", func: "forward", active: false, interval: 500},
+                        {label: "Go left", func: "left", active: false, interval: 200},
+                        {label: "Go right", func: "right", active: false, interval: 200}
+                    ]
+                },
+                interval: Object,
 
             },
             observers: ["updateSrc(synced.time.ms, selectedCamera)",
@@ -173,6 +196,35 @@
             ready: function () {
                 setInterval(this.setNow.bind(this), 10*60*1000)
             },
+
+            back: function(){
+                this.set("synced.time.ms", this.synced.time.ms -10*60*1000);
+            },
+
+            forward: function() {
+                this.set("synced.time.ms",  Math.min(this.synced.time.ms +10*60*1000, Date.now()));
+            },
+
+            left: function() {
+                this.set("synced.position.left", this.synced.position.left -1);
+            },
+
+            right: function() {
+                this.set("synced.position.left", this.synced.position.left +1);
+            },
+
+            start: function(event) {
+                var item = event.model.item;
+                this[item.func]();
+                event.model.set("item.active", true);
+                this.interval = setInterval(this[item.func].bind(this), item.interval);
+            },
+
+            stop: function(event){
+                clearInterval(this.interval);
+                event.model.set("item.active", false);
+            },
+
             imageError: function (e) {
               console.log(e);
               this.goBack(); // go back in time until we find a photo
@@ -187,18 +239,6 @@
               // Try 10 minutes before
                 this.set("synced.time.ms", this.synced.time.ms -10*60*1000);
             },
-            goForward: function() {
-              // Try 10 minutes before
-                this.set("synced.time.ms", this.synced.time.ms +10*60*1000);
-              // should maybe stop at some point?
-            },
-
-            goLeft: function () {
-              this.set("synced.position.left", this.synced.position.left -1);
-            },
-            goRight: function () {
-              this.set("synced.position.left", this.synced.position.left +1);
-            },
 
             selectedCameraChanged: function() {
                 this.selectedCamera =  this.cameras[this.synced.camera.selected].code;
@@ -208,7 +248,7 @@
               this.$$("#image").style.left = this.synced.position.left +"vw";
             },
 
-            getSrcForLocation: function(index) {
+            getSrcForLocation: function(time, index) {
                 // Thumbnails would be better. It's ok like this as a prototype, but thumbnailswould be slow on mobile
                 return this.getSrc(this.synced.time.ms, this.cameras[index].code, "half");
             },
