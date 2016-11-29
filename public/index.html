@@ -14,9 +14,8 @@
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-connection.html">
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-url-pairing.html">
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-qr.html">
-    <link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu-light.html">
-    <link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
-    <link rel="import" href="bower_components/paper-item/paper-item.html">
+    <link rel="import" href="bower_components/iron-selector/iron-selector.html">
+
     <link rel="import" href="bower_components/xdmvcclient/layouts/controller-layout.html">
     <meta name="viewport" content="width=device-width, user-scalable=no">
 
@@ -51,17 +50,18 @@
                     <button on-click="goRight">Go right</button>
                 </div>
                 <div id="portrait">
-                    <paper-dropdown-menu-light>
 
-                        <paper-listbox class="dropdown-content" selected="{{synced.camera.selected}}">
+                    <iron-selector selected="{{synced.camera.selected}}">
 
-                            <template is="dom-repeat" items='[[cameras]]'>
-                                <paper-item>[[item.name]]</paper-item>
-                            </template>
+                        <template is="dom-repeat" items='[[cameras]]'>
+                            <div class="camera">
+                                <span>[[item.name]]</span>
+                                <img src="[[getSrcForLocation(index)]]"/>
+                            </div>
+                        </template>
 
-                        </paper-listbox>
+                    </iron-selector>
 
-                    </paper-dropdown-menu-light>
                 </div>
 
             </div>
@@ -70,8 +70,8 @@
                     <xdmvc-url-pairing connector="controller" connectee="viewer"  url="{{url}}"></xdmvc-url-pairing>
                     <xdmvc-qr url="[[url]]" message="Scan the QR code to pair to this screen."></xdmvc-qr>
                 </div>
-
                 <img id="image" src="[[src]]" on-error="imageError"/>
+                <div>[[src]]</div>
             </div>
         </controller-layout>
         <style>
@@ -85,6 +85,25 @@
             #qr {
                 position: absolute;
                 z-index: 1;
+            }
+
+
+            .camera {
+                width: 50vw;
+                height: 50vw;
+                display: inline-block;
+                white-space: normal;
+                vertical-align: top;
+                overflow: hidden;
+            }
+
+            .camera img {
+                position: relative;
+                height: inherit;
+            }
+
+            #portrait {
+                white-space: nowrap;
             }
 
             @media (orientation: landscape) {
@@ -120,7 +139,7 @@
 
                 synced: {
                     type: Object,
-                    value: function(){ return { time: { ms: Date.now()   },
+                    value: function(){ return { time: { ms: Date.now()-10*60*1000   },
                       camera : { selected: 0},
                       position: {left: 0}
                     } } ,
@@ -136,14 +155,13 @@
                 }
 
             },
-            observers: ["setTime(synced.time.ms, selectedCamera)",
+            observers: ["updateSrc(synced.time.ms, selectedCamera)",
                     "setPosition(synced.position.left)",
                     "selectedCameraChanged(synced.camera.selected)"
             ],
 
             ready: function () {
-              this.setTime(Date.now());
-              setInterval(this.setNow.bind(this), 10*60*1000)
+                setInterval(this.setNow.bind(this), 10*60*1000)
             },
             imageError: function (e) {
               console.log(e);
@@ -151,16 +169,17 @@
               // should maybe stop at some point?
             },
             setNow: function() {
-                this.setTime(Date.now());
+                // Now minus ten minutes. The camera's take some time to produce the images
+                this.set("synced.time.ms", Date.now()-10*60*1000);
             },
 
             goBack: function() {
               // Try 10 minutes before
-              this.setTime(this.synced.time.ms -10*60*1000);
+                this.set("synced.time.ms", this.synced.time.ms -10*60*1000);
             },
             goForward: function() {
               // Try 10 minutes before
-              this.setTime(this.synced.time.ms +10*60*1000);
+                this.set("synced.time.ms", this.synced.time.ms +10*60*1000);
               // should maybe stop at some point?
             },
 
@@ -179,15 +198,20 @@
               this.$$("#image").style.left = this.synced.position.left +"vw";
             },
 
-            setTime: function(time) {
-              this.set("synced.time.ms", time);
-              const tenMinutesAgo = new Date(this.synced.time.ms - 10*60*1000);
-              const date = `${tenMinutesAgo.getFullYear()}-${pad(tenMinutesAgo.getMonth()+1,2)}-${pad(tenMinutesAgo.getDate(),2)}`;
-              // minutes must be multiples of 10
-              const timeformat = `${pad(tenMinutesAgo.getHours(),2)}-${pad(Math.floor((tenMinutesAgo.getMinutes())/10)*10,2)}-00`;
-              console.log(date +"-" +timeformat);
-              console.log(this.cameras);
-              this.src = `http://storage.roundshot.com/${this.selectedCamera}/${date}/${timeformat}/${date}-${timeformat}_full.jpg`;
+            getSrcForLocation: function(index) {
+                return this.getSrc(this.synced.time.ms, this.cameras[index].code);
+            },
+
+            updateSrc: function(time, location) {
+                this.src = this.getSrc(this.synced.time.ms, this.selectedCamera);
+            },
+
+            getSrc: function(timeMs, location) {
+                const time = new Date(timeMs);
+                const date = `${time.getFullYear()}-${pad(time.getMonth()+1,2)}-${pad(time.getDate(),2)}`;
+                // minutes must be multiples of 10
+                const timeformat = `${pad(time.getHours(),2)}-${pad(Math.floor((time.getMinutes())/10)*10,2)}-00`;
+                return `http://storage.roundshot.com/${location}/${date}/${timeformat}/${date}-${timeformat}_full.jpg`;
             }
 
         });
