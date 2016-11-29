@@ -14,7 +14,9 @@
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-connection.html">
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-url-pairing.html">
     <link rel="import" href="bower_components/xdmvcclient/polymer/xdmvc-qr.html">
-
+    <link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu-light.html">
+    <link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+    <link rel="import" href="bower_components/paper-item/paper-item.html">
     <link rel="import" href="bower_components/xdmvcclient/layouts/controller-layout.html">
     <meta name="viewport" content="width=device-width, user-scalable=no">
 
@@ -39,16 +41,28 @@
                             objects='{{synced}}'
                             other-devices="{{others}}">
         </xdmvc-synchronised>
-         <controller-layout>
+        <controller-layout>
             <div class="controller">
-this is the phone
-                <button on-click="goBack">Go back</button>
-                <button on-click="setPilatus">Pilatus</button>
-
-                <button on-click="setWS">Wildspitz</button>
-                <button on-click="goLeft">Go left</button>
-                <button on-click="goRight">Go right</button>
                 <xdmvc-url-pairing connector="controller" connectee="viewer" ></xdmvc-url-pairing>
+                <div id="landscape">
+                    <button on-click="goBack">Go back</button>
+                    <button on-click="goForward">Go forward</button>
+                    <button on-click="goLeft">Go left</button>
+                    <button on-click="goRight">Go right</button>
+                </div>
+                <div id="portrait">
+                    <paper-dropdown-menu-light>
+
+                        <paper-listbox class="dropdown-content" selected="{{synced.camera.selected}}">
+
+                            <template is="dom-repeat" items='[[cameras]]'>
+                                <paper-item>[[item.name]]</paper-item>
+                            </template>
+
+                        </paper-listbox>
+
+                    </paper-dropdown-menu-light>
+                </div>
 
             </div>
             <div class="viewer">
@@ -70,6 +84,18 @@ this is the phone
             }
             #qr {
                 position: absolute;
+                z-index: 1;
+            }
+
+            @media (orientation: landscape) {
+                #portrait {
+                    display: none;
+                }
+            }
+            @media (orientation: portrait) {
+                #landscape {
+                    display: none;
+                }
             }
         </style>
 
@@ -77,77 +103,83 @@ this is the phone
 </dom-module>
 <script>
 
-  function pad(num, size){ return ('0' + num).substr(-size); }
+    function pad(num, size){ return ('0' + num).substr(-size); }
 
-  HTMLImports.whenReady(function () {
+    HTMLImports.whenReady(function () {
 
-      Polymer({
-          is: "my-app",
-          properties: {
-              cameras: {
-                  type: Object,
-                   value: function(){ return  {
-                        pilatus: "53ce6af5ae1835.21533240",
-                        wildspitz: "5595515f75aba9.83008277"
-                   }}
-               },
+        Polymer({
+            is: "my-app",
+            properties: {
+                cameras: {
+                    type: Array,
+                    value: function(){ return  [
+                       { name: "Pilatus", code: "53ce6af5ae1835.21533240" },
+                       { name: "Wildspitz", code: "5595515f75aba9.83008277" }
+                    ]}
+                },
 
-              synced: {
-                  type: Object,
-                  value: function(){ return { time: { ms: Date.now()   },
-                      camera : { location: "wildspitz"},
+                synced: {
+                    type: Object,
+                    value: function(){ return { time: { ms: Date.now()   },
+                      camera : { selected: 0},
                       position: {left: 0}
-                  }} ,
-                  notify: true
-              },
-               src: String
-        },
-          observers: ["setTime(synced.time.ms, synced.camera.location)",
-                      "setPosition(synced.position.left)"
-          ],
+                    } } ,
+                    notify: true
+                },
+                src: String,
+                selectedCamera: {
+                    type: String
+                },
+                portrait: {
+                    type: Boolean,
+                    value: false
+                }
 
-          ready: function () {
+            },
+            observers: ["setTime(synced.time.ms, selectedCamera)",
+                    "setPosition(synced.position.left)",
+                    "selectedCameraChanged(synced.camera.selected)"
+            ],
+
+            ready: function () {
               this.setTime(Date.now());
               setInterval(this.setNow.bind(this), 10*60*1000)
-          },
-          imageError: function (e) {
+            },
+            imageError: function (e) {
               console.log(e);
               this.goBack(); // go back in time until we find a photo
               // should maybe stop at some point?
-          },
-          setNow: function() {
+            },
+            setNow: function() {
                 this.setTime(Date.now());
-          },
+            },
 
-          goBack: function() {
+            goBack: function() {
               // Try 10 minutes before
               this.setTime(this.synced.time.ms -10*60*1000);
-          },
-          goForward: function() {
+            },
+            goForward: function() {
               // Try 10 minutes before
               this.setTime(this.synced.time.ms +10*60*1000);
               // should maybe stop at some point?
-          },
+            },
 
-          setPilatus: function() {
-              this.set("synced.camera.location", "pilatus");
-          },
-          setWS: function() {
-              this.set("synced.camera.location", "wildspitz");
-          },
-
-          goLeft: function () {
+            goLeft: function () {
               this.set("synced.position.left", this.synced.position.left -1);
-          },
-          goRight: function () {
+            },
+            goRight: function () {
               this.set("synced.position.left", this.synced.position.left +1);
-          },
+            },
 
-          setPosition: function() {
+            selectedCameraChanged: function() {
+                this.selectedCamera =  this.cameras[this.synced.camera.selected].code;
+            },
+
+            setPosition: function() {
               this.$$("#image").style.left = this.synced.position.left +"vw";
-          },
+            },
 
-          setTime: function(time) {
+            setTime: function(time) {
               this.set("synced.time.ms", time);
               const tenMinutesAgo = new Date(this.synced.time.ms - 10*60*1000);
               const date = `${tenMinutesAgo.getFullYear()}-${pad(tenMinutesAgo.getMonth()+1,2)}-${pad(tenMinutesAgo.getDate(),2)}`;
@@ -155,11 +187,11 @@ this is the phone
               const timeformat = `${pad(tenMinutesAgo.getHours(),2)}-${pad(Math.floor((tenMinutesAgo.getMinutes())/10)*10,2)}-00`;
               console.log(date +"-" +timeformat);
               console.log(this.cameras);
-              this.src = `http://storage.roundshot.com/${this.cameras[this.synced.camera.location]}/${date}/${timeformat}/${date}-${timeformat}_full.jpg`;
-          }
+              this.src = `http://storage.roundshot.com/${this.selectedCamera}/${date}/${timeformat}/${date}-${timeformat}_full.jpg`;
+            }
 
-      });
-  });
+        });
+    });
 
 </script>
 
