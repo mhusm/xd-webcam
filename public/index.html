@@ -44,6 +44,7 @@
             <div class="controller">
                 <xdmvc-url-pairing connector="controller" connectee="viewer" ></xdmvc-url-pairing>
                 <div id="landscape">
+                    <div id="time">[[formatTime(synced.time.ms)]]</div>
 
                     <template is="dom-repeat" items='[[buttons]]'><button on-down="start" on-up="stop" active$="[[item.active]]">[[item.label]]</button></template>
 
@@ -90,11 +91,23 @@
                 z-index: 1;
             }
 
+            #time {
+                position: absolute;
+                z-index: 1;
+                margin: 0 auto;
+                width: 80%;
+                left: 10%;
+                top: 10%;
+                text-align:center
+
+            }
+
             button {
                 width: 50vw;
                 height: 50vh;
                 border:none;
                 padding: 0;
+                font-size: 2em;
             }
 
             #portrait {
@@ -111,7 +124,7 @@
             }
 
             .camera.iron-selected {
-                background: #00e5ff;
+                background: #7effd4;
             }
 
             .camera img {
@@ -120,7 +133,7 @@
             }
 
             [active] {
-                background: red;
+                background: #7effd4;
             }
 
 
@@ -154,7 +167,7 @@
                         {name: "Wildspitz", code: "5595515f75aba9.83008277"},
                         {name: "Andermatt", code: "5322dcaec2f0b3.73101337" },
                         {name: "Rotenflue", code: "548ea1876fbaa7.33455027" },
-                        {name: "Fürenalp", code: "53a83ab613b499.51177756" },
+                        {name: "Gstaad", code: "53ce6a088e0b28.00564708" },
                         {name: "Scalottas", code: "53aa8fcedea3b9.09671656" },
                         {name: "Parpaner Rothorn", code: "53aa8e920dd9e7.40757090" },
                         {name: "Biel-Kinizig", code: "563cccc4d6dde3.19689514"}
@@ -181,11 +194,11 @@
                     type: Array,
                     value: [{label: "Go back", func: "back", active: false, interval: 500},
                         {label: "Go forward", func: "forward", active: false, interval: 500},
-                        {label: "Go left", func: "left", active: false, interval: 200},
-                        {label: "Go right", func: "right", active: false, interval: 200}
+                        {label: "Go left", func: "left", active: false, interval: 100},
+                        {label: "Go right", func: "right", active: false, interval: 100}
                     ]
                 },
-                interval: Object,
+                interval: Object
 
             },
             observers: ["updateSrc(synced.time.ms, selectedCamera)",
@@ -263,6 +276,14 @@
                 // minutes must be multiples of 10
                 const timeformat = `${pad(time.getHours(),2)}-${pad(Math.floor((time.getMinutes())/10)*10,2)}-00`;
                 return `http://storage.roundshot.com/${location}/${date}/${timeformat}/${date}-${timeformat}_${size}.jpg`;
+            },
+
+            formatTime: function(timeMs) {
+                const time = new Date(timeMs);
+                const date = `${time.getFullYear()}-${pad(time.getMonth()+1,2)}-${pad(time.getDate(),2)}`;
+                // minutes must be multiples of 10
+                const timeformat = `${pad(time.getHours(),2)}-${pad(Math.floor((time.getMinutes())/10)*10,2)}-00`;
+                return date +" " +timeformat;
             }
 
         });
