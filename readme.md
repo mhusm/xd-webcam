@@ -11,7 +11,7 @@ After scanning the code, the phone loads a list of web cams that can be displaye
 
 ![The phone UI in portrait mode](public/screenshots/controller_vertical.png)
 
-When the phone is flipped to landscape, it can be used to go back and forward in time and to control the camera position.
+When the phone is flipped to landscape, it can be used to go back and forward in time and to control the camera position. Tap and hold the buttons for continuous movement.
 
 ![The phone UI in landscape mode](public/screenshots/controller_horizontal.png)
 
