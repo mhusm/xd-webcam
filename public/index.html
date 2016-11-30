@@ -47,12 +47,6 @@
                     <div id="time">[[formatTime(synced.time.ms)]]</div>
 
                     <template is="dom-repeat" items='[[buttons]]'><button on-down="start" on-up="stop" active$="[[item.active]]">[[item.label]]</button></template>
-
-
-                    <!--
-                    <button on-down="backStarted" on-up="stop" active$="[[backActive]]">Go back</button><button  on-down="forwardStarted" on-up="stop">Go forward</button>
-                    <button on-down="leftStarted" on-up="stop">Go left</button><button on-down="rightStarted" on-up="stop">Go right</button>
-                    -->
                 </div>
                 <div id="portrait">
 
