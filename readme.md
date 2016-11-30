@@ -14,3 +14,5 @@ After scanning the code, the phone loads a list of web cams that can be displaye
 When the phone is flipped to landscape, it can be used to go back and forward in time and to control the camera position.
 
 ![The phone UI in landscape mode](public/screenshots/controller_horizontal.png)
+
+This is a quick and dirty prototype, so not all corner cases have been covered. It was only tested in Chrome and with a Nexus 5x.
