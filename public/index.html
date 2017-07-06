@@ -36,12 +36,10 @@
     <template>
         <xdmvc-connection ></xdmvc-connection>
 
-        <xdmvc-synchronised id="sync"
-                            objects="{{synced}}">
-        </xdmvc-synchronised>
+        <xdmvc-synchronised objects="{{synced}}"></xdmvc-synchronised>
+        <xdmvc-url-pairing connector="controller" connectee="viewer" url="{{url}}"></xdmvc-url-pairing>
         <controller-layout>
             <div class="controller">
-                <xdmvc-url-pairing connector="controller" connectee="viewer" ></xdmvc-url-pairing>
                 <div id="landscape">
                     <div id="time">[[formatTime(synced.time.ms)]]</div>
 
@@ -64,229 +62,229 @@
 
             </div>
             <div class="viewer">
-                <div id="qr">
-                    <xdmvc-url-pairing connector="controller" connectee="viewer"  url="{{url}}"></xdmvc-url-pairing>
-                    <xdmvc-qr url="[[url]]" message="Scan the QR code to pair to this screen."></xdmvc-qr>
-                </div>
-                <img id="image" src="[[src]]" on-error="imageError"/>
+                <!--
+                <div id="qr"> -->
+                <xdmvc-qr url="[[url]]" message="Scan the QR code to pair to this screen."></xdmvc-qr>
+              <!--               </div> -->
+                             <img id="image" src="[[src]]" on-error="imageError"/>
             </div>
         </controller-layout>
-        <style>
+         <style>
 
-            img {
-                height: 100vh;
-                position: absolute;
-            }
+             img {
+                 height: 100vh;
+                 position: absolute;
+             }
 
-            #qr {
-                position: absolute;
-                z-index: 1;
-            }
+             xdmvc-qr {
+                 position: absolute;
+                 z-index: 1;
+             }
 
-            #time {
-                position: absolute;
-                z-index: 1;
-                margin: 0 auto;
-                width: 80%;
-                left: 10%;
-                top: 10%;
-                text-align:center
+             #time {
+                 position: absolute;
+                 z-index: 1;
+                 margin: 0 auto;
+                 width: 80%;
+                 left: 10%;
+                 top: 10%;
+                 text-align:center
 
-            }
+             }
 
-            button {
-                width: 50vw;
-                height: 50vh;
-                border:none;
-                padding: 0;
-                font-size: 2em;
-                user-select: none;
-            }
+             button {
+                 width: 50vw;
+                 height: 50vh;
+                 border:none;
+                 padding: 0;
+                 font-size: 2em;
+                 user-select: none;
+             }
 
-            #portrait {
-                height: 100vh;
-                overflow: auto;
-            }
+             #portrait {
+                 height: 100vh;
+                 overflow: auto;
+             }
 
-            .camera {
-                width: 50vw;
-                height: 50vw;
-                vertical-align: top;
-                overflow: hidden;
-                float: left;
-            }
+             .camera {
+                 width: 50vw;
+                 height: 50vw;
+                 vertical-align: top;
+                 overflow: hidden;
+                 float: left;
+             }
 
-            .camera.iron-selected {
-                background: #7effd4;
-            }
+             .camera.iron-selected {
+                 background: #7effd4;
+             }
 
-            .camera img {
-                position: relative;
-                height: inherit;
-            }
+             .camera img {
+                 position: relative;
+                 height: inherit;
+             }
 
-            [active] {
-                background: #7effd4;
-            }
-
-
-            @media (orientation: landscape) {
-                #portrait {
-                    display: none;
-                }
-            }
-            @media (orientation: portrait) {
-                #landscape {
-                    display: none;
-                }
-            }
-        </style>
-
-   </template>
-</dom-module>
-<script>
-
-    function pad(num, size){ return ('0' + num).substr(-size); }
-
-    HTMLImports.whenReady(function () {
-
-        Polymer({
-            is: "my-app",
-            properties: {
-                cameras: {
-                    type: Array,
-                    value: function(){ return  [
-                        {name: "Pilatus", code: "53ce6af5ae1835.21533240" },
-                        {name: "Wildspitz", code: "5595515f75aba9.83008277"},
-                        {name: "Andermatt", code: "5322dcaec2f0b3.73101337" },
-                        {name: "Rotenflue", code: "548ea1876fbaa7.33455027" },
-                        {name: "Gstaad", code: "53ce6a088e0b28.00564708" },
-                        {name: "Scalottas", code: "53aa8fcedea3b9.09671656" },
-                        {name: "Parpaner Rothorn", code: "53aa8e920dd9e7.40757090" },
-                        {name: "Biel-Kinizig", code: "563cccc4d6dde3.19689514"}
-                    ]}
-                },
-
-                synced: {
-                    type: Object,
-                    value: function(){ return { time: { ms: Date.now()-10*60*1000   },
-                      camera : { selected: 0},
-                      position: {left: 0}
-                    } } ,
-                    notify: true
-                },
-                src: String,
-                selectedCamera: {
-                    type: String
-                },
-                portrait: {
-                    type: Boolean,
-                    value: false
-                },
-                buttons: {
-                    type: Array,
-                    value: [{label: "Go back", func: "back", active: false, interval: 500},
-                        {label: "Go forward", func: "forward", active: false, interval: 500},
-                        {label: "Go left", func: "left", active: false, interval: 100},
-                        {label: "Go right", func: "right", active: false, interval: 100}
-                    ]
-                },
-                interval: Object
-
-            },
-            observers: ["updateSrc(synced.time.ms, selectedCamera)",
-                    "setPosition(synced.position.left)",
-                    "selectedCameraChanged(synced.camera.selected)"
-            ],
-
-            ready: function () {
-                setInterval(this.setNow.bind(this), 10*60*1000)
-            },
-
-            back: function(){
-                this.set("synced.time.ms", this.synced.time.ms -10*60*1000);
-            },
-
-            forward: function() {
-                this.set("synced.time.ms",  Math.min(this.synced.time.ms +10*60*1000, Date.now()));
-            },
-
-            left: function() {
-                this.set("synced.position.left", this.synced.position.left -1);
-            },
-
-            right: function() {
-                this.set("synced.position.left", this.synced.position.left +1);
-            },
-
-            start: function(event) {
-                var item = event.model.item;
-                this[item.func]();
-                event.model.set("item.active", true);
-                this.interval = setInterval(this[item.func].bind(this), item.interval);
-            },
-
-            stop: function(event){
-                clearInterval(this.interval);
-                event.model.set("item.active", false);
-            },
-
-            imageError: function (e) {
-              console.log(e);
-              this.goBack(); // go back in time until we find a photo
-              // TODO should maybe stop at some point?
-                // This also makes it impossible to go forward during the night because this will constantly take you back again.
-            },
-            setNow: function() {
-                // Now minus ten minutes. The cameras take some time to produce the images
-                this.set("synced.time.ms", Date.now()-10*60*1000);
-            },
-
-            goBack: function() {
-              // Try 10 minutes before
-                this.set("synced.time.ms", this.synced.time.ms -10*60*1000);
-            },
-
-            selectedCameraChanged: function() {
-                this.selectedCamera =  this.cameras[this.synced.camera.selected].code;
-            },
-
-            setPosition: function() {
-              this.$$("#image").style.left = this.synced.position.left +"vw";
-            },
-
-            getSrcForLocation: function(time, index) {
-                // Thumbnails would be better. It's ok like this as a prototype, but would be slow on mobile
-                return this.getSrc(this.synced.time.ms, this.cameras[index].code, "half");
-            },
-
-            updateSrc: function(time, location) {
-                this.src = this.getSrc(this.synced.time.ms, this.selectedCamera);
-            },
-
-            getSrc: function(timeMs, location, size = "full") {
-                const time = new Date(timeMs);
-                const date = `${time.getFullYear()}-${pad(time.getMonth()+1,2)}-${pad(time.getDate(),2)}`;
-                // minutes must be multiples of 10
-                const timeformat = `${pad(time.getHours(),2)}-${pad(Math.floor((time.getMinutes())/10)*10,2)}-00`;
-                return `http://storage.roundshot.com/${location}/${date}/${timeformat}/${date}-${timeformat}_${size}.jpg`;
-            },
-
-            formatTime: function(timeMs) {
-                const time = new Date(timeMs);
-                const date = `${time.getFullYear()}-${pad(time.getMonth()+1,2)}-${pad(time.getDate(),2)}`;
-                // minutes must be multiples of 10
-                const timeformat = `${pad(time.getHours(),2)}-${pad(Math.floor((time.getMinutes())/10)*10,2)}-00`;
-                return date +" " +timeformat;
-            }
-
-        });
-    });
-
-</script>
-
-<my-app></my-app>
+             [active] {
+                 background: #7effd4;
+             }
 
 
-</body>
-</html>
+             @media (orientation: landscape) {
+                 #portrait {
+                     display: none;
+                 }
+             }
+             @media (orientation: portrait) {
+                 #landscape {
+                     display: none;
+                 }
+             }
+         </style>
+
+    </template>
+ </dom-module>
+ <script>
+
+     function pad(num, size){ return ('0' + num).substr(-size); }
+
+     HTMLImports.whenReady(function () {
+
+         Polymer({
+             is: "my-app",
+             properties: {
+                 cameras: {
+                     type: Array,
+                     value: function(){ return  [
+                         {name: "Pilatus", code: "53ce6af5ae1835.21533240" },
+                         {name: "Wildspitz", code: "5595515f75aba9.83008277"},
+                         {name: "Andermatt", code: "5322dcaec2f0b3.73101337" },
+                         {name: "Rotenflue", code: "548ea1876fbaa7.33455027" },
+                         {name: "Gstaad", code: "53ce6a088e0b28.00564708" },
+                         {name: "Scalottas", code: "53aa8fcedea3b9.09671656" },
+                         {name: "Parpaner Rothorn", code: "53aa8e920dd9e7.40757090" },
+                         {name: "Biel-Kinizig", code: "563cccc4d6dde3.19689514"}
+                     ]}
+                 },
+
+                 synced: {
+                     type: Object,
+                     value: function(){ return { time: { ms: Date.now()-10*60*1000   },
+                       camera : { selected: 0},
+                       position: {left: 0}
+                     } } ,
+                     notify: true
+                 },
+                 src: String,
+                 selectedCamera: {
+                     type: String
+                 },
+                 portrait: {
+                     type: Boolean,
+                     value: false
+                 },
+                 buttons: {
+                     type: Array,
+                     value: [{label: "Go back", func: "back", active: false, interval: 500},
+                         {label: "Go forward", func: "forward", active: false, interval: 500},
+                         {label: "Go left", func: "left", active: false, interval: 100},
+                         {label: "Go right", func: "right", active: false, interval: 100}
+                     ]
+                 },
+                 interval: Object
+
+             },
+             observers: ["updateSrc(synced.time.ms, selectedCamera)",
+                     "setPosition(synced.position.left)",
+                     "selectedCameraChanged(synced.camera.selected)"
+             ],
+
+             ready: function () {
+                 setInterval(this.setNow.bind(this), 10*60*1000)
+             },
+
+             back: function(){
+                 this.set("synced.time.ms", this.synced.time.ms -10*60*1000);
+             },
+
+             forward: function() {
+                 this.set("synced.time.ms",  Math.min(this.synced.time.ms +10*60*1000, Date.now()));
+             },
+
+             left: function() {
+                 this.set("synced.position.left", this.synced.position.left -1);
+             },
+
+             right: function() {
+                 this.set("synced.position.left", this.synced.position.left +1);
+             },
+
+             start: function(event) {
+                 var item = event.model.item;
+                 this[item.func]();
+                 event.model.set("item.active", true);
+                 this.interval = setInterval(this[item.func].bind(this), item.interval);
+             },
+
+             stop: function(event){
+                 clearInterval(this.interval);
+                 event.model.set("item.active", false);
+             },
+
+             imageError: function (e) {
+               console.log(e);
+               this.goBack(); // go back in time until we find a photo
+               // TODO should maybe stop at some point?
+                 // This also makes it impossible to go forward during the night because this will constantly take you back again.
+             },
+             setNow: function() {
+                 // Now minus ten minutes. The cameras take some time to produce the images
+                 this.set("synced.time.ms", Date.now()-10*60*1000);
+             },
+
+             goBack: function() {
+               // Try 10 minutes before
+                 this.set("synced.time.ms", this.synced.time.ms -10*60*1000);
+             },
+
+             selectedCameraChanged: function() {
+                 this.selectedCamera =  this.cameras[this.synced.camera.selected].code;
+             },
+
+             setPosition: function() {
+               this.$$("#image").style.left = this.synced.position.left +"vw";
+             },
+
+             getSrcForLocation: function(time, index) {
+                 // Thumbnails would be better. It's ok like this as a prototype, but would be slow on mobile
+                 return this.getSrc(this.synced.time.ms, this.cameras[index].code, "half");
+             },
+
+             updateSrc: function(time, location) {
+                 this.src = this.getSrc(this.synced.time.ms, this.selectedCamera);
+             },
+
+             getSrc: function(timeMs, location, size = "full") {
+                 const time = new Date(timeMs);
+                 const date = `${time.getFullYear()}-${pad(time.getMonth()+1,2)}-${pad(time.getDate(),2)}`;
+                 // minutes must be multiples of 10
+                 const timeformat = `${pad(time.getHours(),2)}-${pad(Math.floor((time.getMinutes())/10)*10,2)}-00`;
+                 return `http://storage.roundshot.com/${location}/${date}/${timeformat}/${date}-${timeformat}_${size}.jpg`;
+             },
+
+             formatTime: function(timeMs) {
+                 const time = new Date(timeMs);
+                 const date = `${time.getFullYear()}-${pad(time.getMonth()+1,2)}-${pad(time.getDate(),2)}`;
+                 // minutes must be multiples of 10
+                 const timeformat = `${pad(time.getHours(),2)}-${pad(Math.floor((time.getMinutes())/10)*10,2)}-00`;
+                 return date +" " +timeformat;
+             }
+
+         });
+     });
+
+ </script>
+
+ <my-app></my-app>
+
+
+ </body>
+ </html>
