@@ -236,11 +236,11 @@
             imageError: function (e) {
               console.log(e);
               this.goBack(); // go back in time until we find a photo
-              // should maybe stop at some point?
+              // TODO should maybe stop at some point?
                 // This also makes it impossible to go forward during the night because this will constantly take you back again.
             },
             setNow: function() {
-                // Now minus ten minutes. The camera's take some time to produce the images
+                // Now minus ten minutes. The cameras take some time to produce the images
                 this.set("synced.time.ms", Date.now()-10*60*1000);
             },
 
@@ -258,7 +258,7 @@
             },
 
             getSrcForLocation: function(time, index) {
-                // Thumbnails would be better. It's ok like this as a prototype, but thumbnailswould be slow on mobile
+                // Thumbnails would be better. It's ok like this as a prototype, but would be slow on mobile
                 return this.getSrc(this.synced.time.ms, this.cameras[index].code, "half");
             },
 
