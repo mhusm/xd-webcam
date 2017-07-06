@@ -37,8 +37,7 @@
         <xdmvc-connection ></xdmvc-connection>
 
         <xdmvc-synchronised id="sync"
-                            objects='{{synced}}'
-                            other-devices="{{others}}">
+                            objects="{{synced}}">
         </xdmvc-synchronised>
         <controller-layout>
             <div class="controller">
@@ -70,7 +69,6 @@
                     <xdmvc-qr url="[[url]]" message="Scan the QR code to pair to this screen."></xdmvc-qr>
                 </div>
                 <img id="image" src="[[src]]" on-error="imageError"/>
-                <div>[[src]]</div>
             </div>
         </controller-layout>
         <style>
