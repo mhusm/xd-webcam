@@ -62,11 +62,8 @@
 
             </div>
             <div class="viewer">
-                <!--
-                <div id="qr"> -->
                 <xdmvc-qr url="[[url]]" message="Scan the QR code to pair to this screen."></xdmvc-qr>
-              <!--               </div> -->
-                             <img id="image" src="[[src]]" on-error="imageError"/>
+                <img id="image" src="[[getImage(synced.time.ms, synced.camera.selected)]]" on-error="imageError"/>
             </div>
         </controller-layout>
          <style>
@@ -174,9 +171,6 @@
                      notify: true
                  },
                  src: String,
-                 selectedCamera: {
-                     type: String
-                 },
                  portrait: {
                      type: Boolean,
                      value: false
@@ -192,9 +186,7 @@
                  interval: Object
 
              },
-             observers: ["updateSrc(synced.time.ms, selectedCamera)",
-                     "setPosition(synced.position.left)",
-                     "selectedCameraChanged(synced.camera.selected)"
+             observers: ["setPosition(synced.position.left)"
              ],
 
              ready: function () {
@@ -245,21 +237,17 @@
                  this.set("synced.time.ms", this.synced.time.ms -10*60*1000);
              },
 
-             selectedCameraChanged: function() {
-                 this.selectedCamera =  this.cameras[this.synced.camera.selected].code;
-             },
-
              setPosition: function() {
                this.$$("#image").style.left = this.synced.position.left +"vw";
              },
 
              getSrcForLocation: function(time, index) {
-                 // Thumbnails would be better. It's ok like this as a prototype, but would be slow on mobile
+                 // Thumbnails would be better. It's ok like this as a prototype, but would be slow and waste data on mobile
                  return this.getSrc(this.synced.time.ms, this.cameras[index].code, "half");
              },
 
-             updateSrc: function(time, location) {
-                 this.src = this.getSrc(this.synced.time.ms, this.selectedCamera);
+             getImage: function(time, location) {
+                 return this.getSrc(this.synced.time.ms, this.cameras[this.synced.camera.selected].code);
              },
 
              getSrc: function(timeMs, location, size = "full") {
