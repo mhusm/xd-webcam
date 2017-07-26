@@ -164,10 +164,13 @@
 
                  synced: {
                      type: Object,
-                     value: function(){ return { time: { ms: Date.now()-10*60*1000   },
-                       camera : { selected: 0},
-                       position: {left: 0}
-                     } } ,
+                     value: function(){
+                         return {
+                             time: { ms: Date.now()-10*60*1000 },
+                             camera : { selected: 0},
+                             position: {left: 0}
+                        }
+                     },
                      notify: true
                  },
                  src: String,
